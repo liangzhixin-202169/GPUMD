@@ -30,6 +30,10 @@ void Dataset::copy_structures(std::vector<Structure>& structures_input, int n1, 
     structures[n].weight = structures_input[n_input].weight;
     structures[n].has_virial = structures_input[n_input].has_virial;
     structures[n].energy = structures_input[n_input].energy;
+    structures[n].has_temperature = structures_input[n_input].has_temperature;
+    structures[n].has_TS = structures_input[n_input].has_TS;
+    structures[n].temperature = structures_input[n_input].temperature;
+    structures[n].TS = structures_input[n_input].TS;
     for (int k = 0; k < 6; ++k) {
       structures[n].virial[k] = structures_input[n_input].virial[k];
     }
@@ -130,10 +134,12 @@ void Dataset::initialize_gpu_data(Parameters& para)
   energy_ref_cpu.resize(Nc);
   virial_ref_cpu.resize(Nc * 6);
   force_ref_cpu.resize(N * 3);
+  temperature_ref_cpu.resize(N);
 
   for (int n = 0; n < Nc; ++n) {
     weight_cpu[n] = structures[n].weight;
     energy_ref_cpu[n] = structures[n].energy;
+    temperature_ref_cpu[n] = structures[n].temperature;
     for (int k = 0; k < 6; ++k) {
       virial_ref_cpu[k * Nc + n] = structures[n].virial[k];
     }
@@ -161,10 +167,12 @@ void Dataset::initialize_gpu_data(Parameters& para)
   energy_ref_gpu.resize(Nc);
   virial_ref_gpu.resize(Nc * 6);
   force_ref_gpu.resize(N * 3);
+  temperature_ref_gpu.resize(Nc);
   type_weight_gpu.copy_from_host(para.type_weight_cpu.data());
   energy_ref_gpu.copy_from_host(energy_ref_cpu.data());
   virial_ref_gpu.copy_from_host(virial_ref_cpu.data());
   force_ref_gpu.copy_from_host(force_ref_cpu.data());
+  temperature_ref_gpu.copy_from_host(temperature_ref_cpu.data());
 
   box.resize(Nc * 18);
   box_original.resize(Nc * 9);
