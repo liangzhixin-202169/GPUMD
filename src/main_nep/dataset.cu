@@ -105,7 +105,7 @@ void Dataset::find_Na(Parameters& para)
 
   printf("Total number of atoms = %d.\n", N);
   printf("Number of atoms in the largest configuration = %d.\n", max_Na);
-  if (para.train_mode == 0) {
+  if (para.train_mode == 0 || para.train_mode == 3) {
     printf("Number of configurations having virial = %d.\n", num_virial_configurations);
   }
 
@@ -134,7 +134,7 @@ void Dataset::initialize_gpu_data(Parameters& para)
   energy_ref_cpu.resize(Nc);
   virial_ref_cpu.resize(Nc * 6);
   force_ref_cpu.resize(N * 3);
-  temperature_ref_cpu.resize(N);
+  temperature_ref_cpu.resize(Nc);
 
   for (int n = 0; n < Nc; ++n) {
     weight_cpu[n] = structures[n].weight;
