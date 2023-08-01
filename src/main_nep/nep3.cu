@@ -491,7 +491,7 @@ static __global__ void apply_ann_temperature(
 {
   int n1 = threadIdx.x + blockIdx.x * blockDim.x;
   int type = g_type[n1];
-  float temeprature = g_temperature[n1];
+  float temperature = g_temperature[n1];
   if (n1 < N) {
     // get descriptors
     float q[MAX_DIM] = {0.0f};
