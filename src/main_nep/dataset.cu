@@ -134,12 +134,11 @@ void Dataset::initialize_gpu_data(Parameters& para)
   energy_ref_cpu.resize(Nc);
   virial_ref_cpu.resize(Nc * 6);
   force_ref_cpu.resize(N * 3);
-  temperature_ref_cpu.resize(Nc);
+  temperature_ref_cpu.resize(N);
 
   for (int n = 0; n < Nc; ++n) {
     weight_cpu[n] = structures[n].weight;
     energy_ref_cpu[n] = structures[n].energy;
-    temperature_ref_cpu[n] = structures[n].temperature;
     for (int k = 0; k < 6; ++k) {
       virial_ref_cpu[k * Nc + n] = structures[n].virial[k];
     }
@@ -160,6 +159,7 @@ void Dataset::initialize_gpu_data(Parameters& para)
       force_ref_cpu[Na_sum_cpu[n] + na] = structures[n].fx[na];
       force_ref_cpu[Na_sum_cpu[n] + na + N] = structures[n].fy[na];
       force_ref_cpu[Na_sum_cpu[n] + na + N * 2] = structures[n].fz[na];
+      temperature_ref_cpu[Na_sum_cpu[n] + na] = structures[n].temperature;
     }
   }
 
@@ -167,7 +167,7 @@ void Dataset::initialize_gpu_data(Parameters& para)
   energy_ref_gpu.resize(Nc);
   virial_ref_gpu.resize(Nc * 6);
   force_ref_gpu.resize(N * 3);
-  temperature_ref_gpu.resize(Nc);
+  temperature_ref_gpu.resize(N);
   type_weight_gpu.copy_from_host(para.type_weight_cpu.data());
   energy_ref_gpu.copy_from_host(energy_ref_cpu.data());
   virial_ref_gpu.copy_from_host(virial_ref_cpu.data());
