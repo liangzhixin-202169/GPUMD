@@ -220,6 +220,7 @@ void Fitness::write_nep_txt(FILE* fid_nep, Parameters& para, float* elite)
       fprintf(fid_nep, "zbl %g %g\n", para.zbl_rc_inner, para.zbl_rc_outer);
     }
   }
+  fprintf(fid_nep, "model_type %d\n", para.train_mode);
   fprintf(
     fid_nep,
     "cutoff %g %g %d %d\n",

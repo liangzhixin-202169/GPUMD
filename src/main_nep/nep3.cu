@@ -228,7 +228,7 @@ static __global__ void find_descriptors_angular(
     }
   }
 }
- 
+
 NEP3::NEP3(
   Parameters& para,
   int N,
@@ -937,7 +937,7 @@ void NEP3::find_force(
       nep_data[device_id].descriptors.data(),
       nep_data[device_id].sum_fxyz.data());
     CUDA_CHECK_KERNEL
- 
+
     if (calculate_q_scaler) {
       find_max_min<<<annmb[device_id].dim, 1024>>>(
         dataset[device_id].N,
