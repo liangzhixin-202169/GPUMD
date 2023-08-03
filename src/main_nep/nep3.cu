@@ -228,18 +228,7 @@ static __global__ void find_descriptors_angular(
     }
   }
 }
-/*
-static __global__ void add_descriptors_temperature(
-  const int N,
-  const int dim,
-  const float* __restrict__ g_temperature,
-  float* g_descriptors){
-    int n = threadIdx.x + blockIdx.x * blockDim.x;
-    if (n < N) {
-      g_descriptors[n +  (dim  - 1) * N] = g_temperature[n];
-    }
-  }
-*/
+ 
 NEP3::NEP3(
   Parameters& para,
   int N,
@@ -493,7 +482,7 @@ static __global__ void apply_ann_temperature(
   const NEP3::ANN annmb,
   const int* __restrict__ g_type,
   const float* __restrict__ g_descriptors,
-  const float* __restrict__ g_q_scaler,
+  float* __restrict__ g_q_scaler,
   const float* __restrict__ g_temperature,
   const float a,
   const float b,
@@ -509,7 +498,8 @@ static __global__ void apply_ann_temperature(
     for (int d = 0; d < annmb.dim - 1; ++d) {
       q[d] = g_descriptors[n1 + d * N] * g_q_scaler[d];
     }
-    q[annmb.dim - 1] = temperature;
+    g_q_scaler[annmb.dim - 1] = 0.001;  // temperature dimension scaler 
+    q[annmb.dim - 1] = temperature * g_q_scaler[annmb.dim - 1];
     // get energy and energy gradient
     float F = 0.0f, Fp[MAX_DIM] = {0.0f};
     apply_ann_one_layer(
@@ -947,16 +937,7 @@ void NEP3::find_force(
       nep_data[device_id].descriptors.data(),
       nep_data[device_id].sum_fxyz.data());
     CUDA_CHECK_KERNEL
-    /*
-    if(para.train_mode == 3){
-      add_descriptors_temperature<<<grid_size, block_size>>>(
-        dataset[device_id].N,
-        annmb[device_id].dim,
-        dataset[device_id].temperature_ref_gpu.data(),
-        nep_data[device_id].descriptors.data());
-      CUDA_CHECK_KERNEL
-    }
-    */
+ 
     if (calculate_q_scaler) {
       find_max_min<<<annmb[device_id].dim, 1024>>>(
         dataset[device_id].N,
