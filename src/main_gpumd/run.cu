@@ -456,6 +456,8 @@ void Run::parse_run(const char** param, int num_param)
   }
   printf("Run %d steps.\n", number_of_steps);
 
+  force.temperature = initial_temperature;
+
   bool compute_hnemd = measure.hnemd.compute || (measure.modal_analysis.compute &&
                                                  measure.modal_analysis.method == HNEMA_METHOD);
   force.set_hnemd_parameters(
