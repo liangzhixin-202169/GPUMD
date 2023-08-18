@@ -24,6 +24,7 @@ The driver class for the various integrators.
 #include "ensemble_nhc.cuh"
 #include "ensemble_npt_scr.cuh"
 #include "ensemble_nve.cuh"
+#include "ensemble_msst.cuh"
 #include "integrate.cuh"
 #include "model/atom.cuh"
 #include "utilities/common.cuh"
@@ -81,6 +82,10 @@ void Integrate::initialize(
     case 23: // heat-BDP
       ensemble.reset(new Ensemble_BDP(
         type, fixed_group, source, sink, temperature, temperature_coupling, delta_temperature));
+      break;
+    case 31:
+      ensemble.reset(new Ensemble_MSST(
+        type, fixed_group, shock_direction, shock_velocity, qmass, mu, p0, v0, e0, tscale, beta));
       break;
     default:
       printf("Illegal integrator!\n");
@@ -199,7 +204,13 @@ void Integrate::parse_ensemble(Box& box, char** param, int num_param, std::vecto
     if (num_param != 7) {
       PRINT_INPUT_ERROR("ensemble heat_bdp should have 5 parameters.");
     }
-  } else {
+  } else if (strcmp(param[1], "msst") == 0) {
+    type = 31;
+    if (num_param != 11) {
+      PRINT_INPUT_ERROR("ensemble msst should have 9 parameters.");
+    }
+  } else
+    {
     PRINT_INPUT_ERROR("Invalid ensemble type.");
   }
 
@@ -374,6 +385,39 @@ void Integrate::parse_ensemble(Box& box, char** param, int num_param, std::vecto
     }
   }
 
+    // 5. only for msst
+  if (type == 31) {
+    if (!is_valid_int(param[2], &shock_direction)) {
+      PRINT_INPUT_ERROR("Shock direction should be a number.");
+    }
+    if (!is_valid_real(param[3], &shock_velocity)) {
+      PRINT_INPUT_ERROR("Shock velocity should be a number.");
+    }
+    if (!is_valid_real(param[4], &qmass)) {
+      PRINT_INPUT_ERROR("qmass should be a number.");
+    }
+    if (!is_valid_real(param[5], &mu)) {
+      PRINT_INPUT_ERROR("mu should be a number.");
+    }
+    if (!is_valid_real(param[6], &p0)) {
+      PRINT_INPUT_ERROR("p0 should be a number.");
+    }
+    if (!is_valid_real(param[7], &v0)) {
+      PRINT_INPUT_ERROR("v0 should be a number.");
+    }
+    if (!is_valid_real(param[8], &e0)) {
+      PRINT_INPUT_ERROR("e0 should be a number.");
+    }
+    if (!is_valid_real(param[9], &tscale)) {
+      PRINT_INPUT_ERROR("tscale should be a number.");
+    }
+    if (!is_valid_real(param[10], &beta)) {
+      PRINT_INPUT_ERROR("beta should be a number.");
+    }
+    shock_velocity = shock_velocity * TIME_UNIT_CONVERSION / 100.0;
+    p0 /= PRESSURE_UNIT_CONVERSION;
+  }
+
   switch (type) {
     case 0:
       printf("Use NVE ensemble for this run.\n");
@@ -522,6 +566,21 @@ void Integrate::parse_ensemble(Box& box, char** param, int num_param, std::vecto
       printf("    heat source is group %d in grouping method 0.\n", source);
       printf("    heat sink is group %d in grouping method 0.\n", sink);
       break;
+    case 31:
+      printf("Use MSST ensemble for this run.\n");
+      printf("    shock dimension is %d.\n", shock_direction);
+      printf("    shock velocity is %g. in km/s\n", shock_velocity / TIME_UNIT_CONVERSION * 100);
+      printf("    qmass is %g.\n", qmass);
+      printf("    mu is %g.\n", mu);
+      //printf("    p0 is %g. in GPa\n", p0 * PRESSURE_UNIT_CONVERSION);
+      //printf("    v0 is %g in A^3.\n", v0);
+      //printf("    e0 is %g.\n", e0);
+      printf("    p0 will be recalculated\n");
+      printf("    v0 will be recalculated\n");
+      printf("    e0 will be recalculated\n");
+      printf("    tscale is %g.\n", tscale);
+      printf("    beta is %g.\n", beta);
+      break;
     default:
       PRINT_INPUT_ERROR("Invalid ensemble type.");
       break;
@@ -586,5 +645,21 @@ void Integrate::parse_deform(char** param, int num_param)
   }
   if (deform_z) {
     printf("    apply strain in z direction.\n");
+  }
+}
+
+void Integrate::msst_initial_param(Box& box, GPU_Vector<double>& thermo)
+{
+ if (type == 31) {
+    ensemble->msst_initial_param(box, thermo);
+  }
+}
+
+void Integrate::msst_setup(Atom& atom,Box& box)
+{
+  if (type == 31) {
+    ensemble->msst_setup(
+      atom.type, atom.mass, atom.position_per_atom, atom.velocity_per_atom, atom.force_per_atom,
+      atom.potential_per_atom, atom.virial_per_atom, box.get_volume());
   }
 }

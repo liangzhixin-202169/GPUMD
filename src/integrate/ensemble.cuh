@@ -51,6 +51,24 @@ public:
     GPU_Vector<double>& velocity_per_atom,
     GPU_Vector<double>& thermo) = 0;
 
+  virtual void msst_initial_param(Box& box, GPU_Vector<double>& thermo)
+  { 
+    ;
+  }
+
+  virtual void msst_setup(
+    const GPU_Vector<int>& type,
+    const GPU_Vector<double>& mass,
+    const GPU_Vector<double>& position_per_atom,
+    GPU_Vector<double>& velocity_per_atom,
+    const GPU_Vector<double>& force_per_atom,
+    const GPU_Vector<double>& potential_per_atom,
+    const GPU_Vector<double>& virial_per_atom,
+    const double volume)
+  {
+    ; // nothing
+  }
+
   int type; // ensemble type in a specific run
   int source;
   int sink;

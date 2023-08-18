@@ -148,7 +148,16 @@ void Run::perform_a_run(char* input_dir)
 {
   integrate.initialize(N, time_step, group);
   measure.initialize(input_dir, number_of_steps, time_step, box, group, force, atom);
-
+  //only for msst
+  integrate.msst_initial_param(box, thermo);
+  force.compute(
+    box, atom.position_per_atom, atom.type, group, atom.potential_per_atom, atom.force_per_atom,
+    atom.virial_per_atom, atom.velocity_per_atom, atom.mass);
+  integrate.msst_setup(atom, box);
+  force.compute(
+    box, atom.position_per_atom, atom.type, group, atom.potential_per_atom, atom.force_per_atom,
+    atom.virial_per_atom, atom.velocity_per_atom, atom.mass);
+  //msst setup end
 #ifdef USE_PLUMED
   if (measure.plmd.use_plumed == 1) {
     measure.plmd.init(time_step, integrate.temperature);

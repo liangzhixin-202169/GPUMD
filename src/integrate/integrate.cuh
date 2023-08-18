@@ -73,4 +73,16 @@ public:
   int deform_y = 0;
   int deform_z = 0;
   double deform_rate;
+
+  int shock_direction;
+  double shock_velocity;
+  double qmass;
+  double mu;
+  double p0;
+  double v0;
+  double e0;
+  double tscale;
+  double beta;
+  void msst_initial_param(Box& box, GPU_Vector<double>& thermo);
+  void msst_setup(Atom& atom, Box& box);
 };
